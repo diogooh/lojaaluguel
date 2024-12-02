@@ -1,46 +1,3 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Seleção de elementos
-    const loginPage = document.getElementById('login-page');
-    const registerPage = document.getElementById('register-page');
-    const toRegisterLink = document.getElementById('to-register');
-    const toLoginLink = document.getElementById('to-login');
-
-    // Alternar para a página de registro
-    toRegisterLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        loginPage.classList.add('hidden');
-        registerPage.classList.remove('hidden');
-    });
-
-    // Alternar para a página de login
-    toLoginLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        registerPage.classList.add('hidden');
-        loginPage.classList.remove('hidden');
-    });
-
-    // Validação de registro
-    document.getElementById('register-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const password = document.getElementById('register-password').value;
-        const confirmPassword = document.getElementById('register-confirm-password').value;
-
-        if (password !== confirmPassword) {
-            alert('As senhas não coincidem!');
-            return;
-        }
-
-        alert('Registro bem-sucedido!');
-        // Aqui você pode enviar os dados ao servidor com fetch()
-    });
-
-    // Validação de login
-    document.getElementById('login-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        alert('Login bem-sucedido!');
-        // Aqui você pode enviar os dados ao servidor com fetch()
-    });
-});
 const express = require('express');
 const bodyParser = require('body-parser');
 const sql = require('mssql');
@@ -84,6 +41,14 @@ function authenticateToken(req, res, next) {
         req.user = user;
         next();
     });
+}
+
+// Middleware para verificar permissões de funcionário
+function checkAdmin(req, res, next) {
+    if (req.user.tipo !== 'funcionario') {
+        return res.status(403).json({ message: 'Permissão negada' });
+    }
+    next();
 }
 
 // Rotas de Usuários
@@ -132,12 +97,8 @@ app.post('/login', (req, res) => {
 });
 
 // Rotas de Gestão de Artigos
-app.post('/artigos', authenticateToken, (req, res) => {
+app.post('/artigos', authenticateToken, checkAdmin, (req, res) => {
     const { nome_artigo, tipo, categoria, tamanho, cor, marca, preco_aluguer, estado } = req.body;
-
-    if (req.user.tipo !== 'funcionario') {
-        return res.status(403).json({ message: 'Permissão negada' });
-    }
 
     const query = `INSERT INTO artigos (nome_artigo, tipo, categoria, tamanho, cor, marca, preco_aluguer, estado, disponibilidade, data_adicionado) 
                    VALUES (@nome_artigo, @tipo, @categoria, @tamanho, @cor, @marca, @preco_aluguer, @estado, 1, GETDATE())`;
@@ -160,7 +121,7 @@ app.post('/artigos', authenticateToken, (req, res) => {
     });
 });
 
-app.get('/artigos', (req, res) => {
+app.get('/artigos', authenticateToken, (req, res) => {
     const query = `SELECT * FROM artigos WHERE disponibilidade = 1`;
     const request = new sql.Request();
 
@@ -208,8 +169,22 @@ app.post('/reservas', authenticateToken, (req, res) => {
     });
 });
 
+// Rotas de Histórico de Alugueres
+app.get('/historico-alugueres', authenticateToken, (req, res) => {
+    const query = `SELECT * FROM alugueres WHERE id_utilizador = @id_utilizador`;
+
+    const request = new sql.Request();
+    request.input('id_utilizador', sql.Int, req.user.id);
+
+    request.query(query, (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: 'Erro ao buscar histórico de alugueres', error: err });
+        }
+        res.json(result.recordset);
+    });
+});
+
 // Iniciar o Servidor
 app.listen(PORT, () => {
     console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
-
