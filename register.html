@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar-se</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Página de Registro -->
+        <div id="register-page" class="auth-page">
+            <h2>Registrar-se</h2>
+            <form id="register-form">
+                <div class="form-group">
+                    <label for="register-name">Nome</label>
+                    <input type="text" id="register-name" name="name" placeholder="Digite seu nome" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-email">E-mail</label>
+                    <input type="email" id="register-email" name="email" placeholder="Digite seu e-mail" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Senha</label>
+                    <input type="password" id="register-password" name="password" placeholder="Crie uma senha" required>
+                </div>
+                <div class="form-group">
+                    <label for="register-confirm-password">Confirme sua Senha</label>
+                    <input type="password" id="register-confirm-password" name="confirm-password" placeholder="Confirme sua senha" required>
+                </div>
+                <button type="submit">Registrar</button>
+                <p>Já tem uma conta? <a href="login.html" id="to-login">Faça login</a></p>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/BackEnd.js"></script>
+</body>
+</html>
